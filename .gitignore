@@ -1,0 +1,9 @@
+# Ignore compiled files
+*.class
+
+# Ignore chat history file
+messages.txt
+
+# Ignore IDE files
+.idea/
+.vscode/
