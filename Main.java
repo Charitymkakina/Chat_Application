@@ -13,6 +13,9 @@ public class Main {
 
         ChatManager chatManager = new ChatManager();
 
+        System.out.println("\n--- Chat History ---");
+        chatManager.displayMessages();
+
         int choice;
 
         do {
@@ -20,7 +23,9 @@ public class Main {
             System.out.println("\n=== CHAT MENU ===");
             System.out.println("1. Send Message");
             System.out.println("2. View Messages");
-            System.out.println("3. Exit");
+            System.out.println("3. Search Messages");
+            System.out.println("4. Delete Message");
+            System.out.println("5. Exit");
 
             System.out.print("Choose an option: ");
             choice = scanner.nextInt();
@@ -49,6 +54,27 @@ public class Main {
 
                 case 3:
 
+                    System.out.print("Enter keyword: ");
+                    String keyword = scanner.nextLine();
+
+                    System.out.println("\n--- Search Results ---");
+                    chatManager.searchMessages(keyword);
+                    break;
+
+                case 4:
+
+                    System.out.println("\n--- Chat History ---");
+                    chatManager.displayMessages();
+
+                    System.out.print("Enter message ID to delete: ");
+                    int id = scanner.nextInt();
+                    scanner.nextLine();
+
+                    chatManager.deleteMessage(id);
+                    break;
+
+                case 5:
+
                     System.out.println("Exiting application...");
                     break;
 
@@ -57,7 +83,7 @@ public class Main {
                     System.out.println("Invalid option.");
             }
 
-        } while (choice != 3);
+        } while (choice != 5);
 
         scanner.close();
     }
