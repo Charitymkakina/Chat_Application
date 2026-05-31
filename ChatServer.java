@@ -1,12 +1,18 @@
-import java.io.BufferedReader;
 import java.io.IOException;
-import java.io.InputStreamReader;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.util.ArrayList;
+import java.util.List;
 
 public class ChatServer {
 
+    public static List<ClientHandler> clients =
+            new ArrayList<>();
+
     public static void main(String[] args) {
+
+        ChatManager chatManager =
+                new ChatManager();
 
         try {
 
@@ -14,37 +20,36 @@ public class ChatServer {
                     new ServerSocket(5000);
 
             System.out.println(
-                    "Server started. Waiting for client..."
+                    "Server started... waiting for clients"
             );
 
-            Socket socket =
-                    serverSocket.accept();
+            while (true) {
 
-            System.out.println(
-                    "Client connected!"
-            );
+                Socket socket =
+                        serverSocket.accept();
 
-            BufferedReader reader =
-                    new BufferedReader(
-                            new InputStreamReader(
-                                    socket.getInputStream()
-                            )
-                    );
+                System.out.println(
+                        "New client connected!"
+                );
 
-            String message =
-                    reader.readLine();
+                ClientHandler handler =
+                        new ClientHandler(
+                                socket,
+                                chatManager
+                        );
 
-            System.out.println(
-                    "Received: " + message
-            );
+                clients.add(handler);
 
-            socket.close();
-            serverSocket.close();
+                Thread thread =
+                        new Thread(handler);
+
+                thread.start();
+            }
 
         } catch (IOException e) {
 
             System.out.println(
-                    "Error: " + e.getMessage()
+                    "Server error: " + e.getMessage()
             );
         }
     }
