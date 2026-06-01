@@ -49,7 +49,8 @@ public class ChatServer {
         } catch (IOException e) {
 
             System.out.println(
-                    "Server error: " + e.getMessage()
+                    "Server error: "
+                            + e.getMessage()
             );
         }
     }

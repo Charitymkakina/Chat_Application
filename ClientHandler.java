@@ -9,8 +9,13 @@ public class ClientHandler implements Runnable {
     private Socket socket;
     private ChatManager chatManager;
     private PrintWriter writer;
+    private String username;
 
-    public ClientHandler(Socket socket, ChatManager chatManager) {
+    public ClientHandler(
+            Socket socket,
+            ChatManager chatManager
+    ) {
+
         this.socket = socket;
         this.chatManager = chatManager;
 
@@ -25,7 +30,8 @@ public class ClientHandler implements Runnable {
         } catch (IOException e) {
 
             System.out.println(
-                    "Error creating writer: " + e.getMessage()
+                    "Error creating writer: "
+                            + e.getMessage()
             );
         }
     }
@@ -42,26 +48,59 @@ public class ClientHandler implements Runnable {
                             )
                     );
 
+            // First message received is username
+            username = reader.readLine();
+
+            System.out.println(
+                    username + " joined the chat."
+            );
+
+            broadcast(
+                    username + " joined the chat."
+            );
+
             String message;
 
             while ((message = reader.readLine()) != null) {
 
+                if (message.equalsIgnoreCase("/logout")) {
+
+                    broadcast(
+                            username + " has left the chat."
+                    );
+
+                    System.out.println(
+                            username + " disconnected."
+                    );
+
+                    break;
+                }
+
+                String formattedMessage =
+                        username + ": " + message;
+
                 chatManager.sendMessage(
-                        "Client",
+                        username,
                         message
                 );
 
                 System.out.println(
-                        "Received: " + message
+                        formattedMessage
                 );
 
-                broadcast(message);
+                broadcast(
+                        formattedMessage
+                );
             }
+
+            ChatServer.clients.remove(this);
+
+            socket.close();
 
         } catch (IOException e) {
 
             System.out.println(
-                    "Client disconnected"
+                    "Client disconnected."
             );
         }
     }

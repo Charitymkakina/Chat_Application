@@ -7,8 +7,10 @@ public class ChatClient {
 
     public static void main(String[] args) {
 
-        Scanner scanner =
-                new Scanner(System.in);
+        Scanner scanner = new Scanner(System.in);
+
+        System.out.print("Enter username: ");
+        String username = scanner.nextLine();
 
         try {
 
@@ -24,18 +26,22 @@ public class ChatClient {
                             true
                     );
 
-            System.out.print(
-                    "Enter message: "
-            );
+            // Send username first
+            writer.println(username);
 
-            String message =
-                    scanner.nextLine();
+            while (true) {
 
-            writer.println(message);
+                System.out.print("Enter message: ");
+                String message = scanner.nextLine();
 
-            System.out.println(
-                    "Message sent!"
-            );
+                writer.println(message);
+
+                if (message.equalsIgnoreCase("/logout")) {
+                    break;
+                }
+            }
+
+            System.out.println("Disconnected from chat.");
 
             socket.close();
 
