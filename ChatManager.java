@@ -82,6 +82,7 @@ public class ChatManager {
         }
 
         if (!found) {
+
             System.out.println(
                     "No messages found containing: "
                             + keyword
@@ -93,13 +94,18 @@ public class ChatManager {
 
         if (index < 0 || index >= messages.size()) {
 
-            System.out.println("Invalid message ID.");
+            System.out.println(
+                    "Invalid message ID."
+            );
+
             return;
         }
 
         messages.remove(index);
 
-        System.out.println("Message deleted successfully.");
+        System.out.println(
+                "Message deleted successfully."
+        );
 
         rewriteFile();
     }
@@ -108,15 +114,19 @@ public class ChatManager {
 
         try (BufferedWriter writer =
                      new BufferedWriter(
-                             new FileWriter("messages.txt", true)
+                             new FileWriter(
+                                     "messages.txt",
+                                     true
+                             )
                      )) {
 
             writer.write(
-                    message.getTimestamp()
-                            + "|"
+                    "username="
                             + message.getSender()
-                            + "|"
+                            + ";message="
                             + message.getContent()
+                            + ";timestamp="
+                            + message.getTimestamp()
             );
 
             writer.newLine();
@@ -134,17 +144,20 @@ public class ChatManager {
 
         try (BufferedWriter writer =
                      new BufferedWriter(
-                             new FileWriter("messages.txt")
+                             new FileWriter(
+                                     "messages.txt"
+                             )
                      )) {
 
             for (Message message : messages) {
 
                 writer.write(
-                        message.getTimestamp()
-                                + "|"
+                        "username="
                                 + message.getSender()
-                                + "|"
+                                + ";message="
                                 + message.getContent()
+                                + ";timestamp="
+                                + message.getTimestamp()
                 );
 
                 writer.newLine();
@@ -163,22 +176,39 @@ public class ChatManager {
 
         try (BufferedReader reader =
                      new BufferedReader(
-                             new FileReader("messages.txt")
+                             new FileReader(
+                                     "messages.txt"
+                             )
                      )) {
 
             String line;
 
             while ((line = reader.readLine()) != null) {
 
-                String[] parts = line.split("\\|");
+                String[] fields =
+                        line.split(";");
 
-                if (parts.length == 3) {
+                if (fields.length == 3) {
+
+                    String sender =
+                            fields[0]
+                                    .split("=")[1];
+
+                    String content =
+                            fields[1]
+                                    .split("=")[1];
+
+                    String timestamp =
+                            fields[2]
+                                    .split("=")[1];
 
                     Message message =
                             new Message(
-                                    parts[1],
-                                    parts[2],
-                                    LocalDateTime.parse(parts[0])
+                                    sender,
+                                    content,
+                                    LocalDateTime.parse(
+                                            timestamp
+                                    )
                             );
 
                     messages.add(message);
@@ -187,7 +217,9 @@ public class ChatManager {
 
         } catch (IOException e) {
 
-            System.out.println("No previous chat history found.");
+            System.out.println(
+                    "No previous chat history found."
+            );
         }
     }
 }
