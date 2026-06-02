@@ -1,96 +1,147 @@
-# Java Console Chat Application
+# Java Chat Application
 
-A simple but progressively built Java-based chat application developed as a learning project to strengthen Object-Oriented Programming, file handling, and software design skills.
+A progressively built Java-based chat application developed to strengthen Object-Oriented Programming, file handling, networking, multithreading, and software design skills.
 
-# Current Progress (Step 6 Complete)
+## Current Progress (Step 16 Complete)
 
-At this stage, the application is fully functional as a console-based chat system with persistent storage.
+The application has evolved from a simple console chat system into a networked multi-client chat application capable of storing messages, handling multiple users, and broadcasting messages in real time.
 
-# What has been accomplished
+## Features Implemented
 
-- Created a `User` class to represent chat users
-- Created a `Message` class with sender, content, and timestamp
-- Built a `ChatManager` class to handle chat logic
-- Implemented a menu-driven console interface using `Scanner`
-- Added ability to:
-  - Send messages
-  - View chat history
-- Integrated timestamps using `LocalDateTime`
-- Formatted timestamps for readability
-- Stored messages in memory using `ArrayList`
-- Implemented file persistence:
-  - Messages are saved to `messages.txt`
-  - Data is appended (not overwritten)
-- Used proper exception handling for file operations
+### Core Chat Features
 
-# Key Concepts Learned
+* User management using a dedicated `User` class
+* Message handling using a dedicated `Message` class
+* Centralized chat logic through `ChatManager`
+* Menu-driven console interface
+* Send messages
+* View chat history
+* Search messages by keyword
+* Delete messages
+* Timestamped messages using `LocalDateTime`
 
-- Object-Oriented Programming (OOP)
-  - Classes and objects
-  - Encapsulation
-  - Constructors
-- Java Collections (`ArrayList`)
-- File Handling
-  - `FileWriter`
-  - `BufferedWriter`
-- Exception Handling (`try-catch`)
-- Java Date and Time API (`LocalDateTime`)
-- Menu-driven console applications
-- Separation of concerns (clean class structure)
+### Persistence Features
 
-# Project Structure
+* Save messages to `messages.txt`
+* Load chat history automatically on startup
+* Rewrite stored messages after deletion
+* Persistent storage across application sessions
+
+### Networking Features
+
+* Client-server architecture using `Socket` and `ServerSocket`
+* Dedicated `ChatServer`
+* Dedicated `ChatClient`
+* Multi-threaded server using Java Threads
+* Multiple client support
+* Broadcast messaging to connected clients
+* Username identification
+* Logout and disconnect handling
+
+## Key Concepts Learned
+
+### Object-Oriented Programming (OOP)
+
+* Classes and Objects
+* Encapsulation
+* Constructors
+* Separation of Concerns
+* Reusable Components
+
+### Java Collections
+
+* ArrayList
+* Iteration and Searching
+* Collection Manipulation
+
+### File Handling
+
+* FileReader
+* BufferedReader
+* FileWriter
+* BufferedWriter
+
+### Exception Handling
+
+* Try-Catch Blocks
+* IOException Handling
+
+### Date and Time API
+
+* LocalDateTime
+* DateTimeFormatter
+
+### Networking
+
+* Socket
+* ServerSocket
+* Client-Server Architecture
+* Input Streams
+* Output Streams
+
+### Concurrency
+
+* Threads
+* Runnable Interface
+* Multi-client Handling
+
+## Project Structure
+
 ChatApplication/
 │
 ├── Main.java
 ├── User.java
 ├── Message.java
 ├── ChatManager.java
-└── messages.txt (generated after running)
+├── ChatServer.java
+├── ChatClient.java
+├── ClientHandler.java
+└── messages.txt
 
-# Current Features
+## Current Capabilities
 
-- Console-based user interaction
-- Message sending system
-- Chat history display
-- Timestamped messages
-- Persistent message storage in a text file
+* Console-based chat system
+* Persistent message storage
+* Search functionality
+* Message deletion
+* Chat history loading
+* Multi-client networking
+* Real-time message broadcasting
+* Username support
+* Logout functionality
+* Multi-threaded server architecture
 
-# Upcoming Goals (Step 7 and Beyond)
+## Upcoming Enhancements
 
-# Step 7: Load Chat History from File
-- Read previous messages from `messages.txt` on startup
-- Display old messages automatically
-- Ensure chat history persists across sessions
+### Security Features
 
-# Step 8: Improve Message System
-- Add message IDs
-- Improve formatting and structure
-- Separate file storage into better format (e.g. JSON-like structure)
+* Message encryption
+* Secure communication
+* Authentication system
 
-# Step 9: Multi-User Simulation
-- Allow switching between users
-- Simulate real conversations between multiple users
+### User Experience
 
-# Step 10: Networking (Real Chat System)
-- Introduce `Socket` and `ServerSocket`
-- Enable real-time messaging between two programs
-- Build client-server architecture
+* Graphical User Interface (JavaFX)
+* Improved message formatting
+* Private messaging
 
-# Step 11: Advanced Features
-- Message encryption (cybersecurity focus)
-- Login system
-- Message search
-- GUI version using JavaFX or Swing
+### Advanced Development
+
+* Database integration
+* Spring Boot backend version
+* REST API development
+* React frontend integration
+* Cloud deployment
 
 ## Project Goal
 
-To progressively evolve this application from a simple console program into a real-world chat system that demonstrates:
+To progressively evolve this application from a console-based chat system into a full-featured communication platform while developing strong skills in:
 
-- Strong Java fundamentals
-- Software design principles
-- File persistence
-- Networking concepts
-- Security awareness
+* Java Programming
+* Software Design
+* Networking
+* Multithreading
+* Backend Development
+* Security Concepts
+* Full-Stack Development
 
-## Author
-Charity Mkakina
