@@ -32,23 +32,34 @@ public class UserManager {
         return true;
     }
 
-    // LOGIN USER (compare hashed passwords)
+    // LOGIN USER (DEBUG VERSION)
     public boolean loginUser(String username, String password) {
+
+        System.out.println("\n=== LOGIN DEBUG ===");
+        System.out.println("Attempting login for: " + username);
 
         String hashedInput =
                 PasswordUtil.hashPassword(password);
 
+        System.out.println("Loaded users: " + users.size());
+
         for (String user : users) {
+
+            System.out.println("Checking user record: " + user);
 
             String[] fields = user.split(";");
 
-            if (fields.length < 2) continue;
+            if (fields.length < 2) {
+                continue;
+            }
 
             String storedUsername =
                     fields[0].split("=")[1];
 
             String storedPassword =
                     fields[1].split("=")[1];
+
+            System.out.println("Stored Username: " + storedUsername);
 
             if (storedUsername.equals(username)
                     && storedPassword.equals(hashedInput)) {
@@ -62,7 +73,7 @@ public class UserManager {
         return false;
     }
 
-    // OPTIONAL CLEAN METHOD (for future architecture upgrades)
+    // OPTIONAL CLEAN METHOD
     public boolean isUserValid(String username, String password) {
         return loginUser(username, password);
     }
