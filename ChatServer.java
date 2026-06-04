@@ -6,10 +6,10 @@ import java.util.HashMap;
 
 public class ChatServer {
 
-    // ACTIVE CLIENTS
+    // ACTIVE CLIENT HANDLERS
     public static ArrayList<ClientHandler> clients = new ArrayList<>();
 
-    // USER ROOMS
+    // USER ROOMS (optional feature you already started)
     private static HashMap<String, String> userRooms = new HashMap<>();
 
     public static void main(String[] args) {
@@ -44,9 +44,7 @@ public class ChatServer {
             PrintWriter writer =
                     new PrintWriter(socket.getOutputStream(), true);
 
-            // =========================
             // LOGIN
-            // =========================
             String loginData = reader.readLine();
 
             if (loginData == null || !loginData.contains(",")) {
@@ -70,7 +68,7 @@ public class ChatServer {
 
             // CREATE CLIENT HANDLER
             ClientHandler handler =
-                    new ClientHandler(socket, null, username);
+                    new ClientHandler(socket, username);
 
             synchronized (clients) {
                 clients.add(handler);
@@ -88,9 +86,7 @@ public class ChatServer {
         }
     }
 
-    // =========================
     // BROADCAST TO ALL CLIENTS
-    // =========================
     public static void broadcast(String message) {
 
         synchronized (clients) {
@@ -101,9 +97,7 @@ public class ChatServer {
         }
     }
 
-    // =========================
-    // ROOM BROADCAST (OPTIONAL USE LATER)
-    // =========================
+    // ROOM MAP ACCESS (future use)
     public static HashMap<String, String> getUserRooms() {
         return userRooms;
     }
