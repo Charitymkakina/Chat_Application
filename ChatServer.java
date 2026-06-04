@@ -1,11 +1,15 @@
 import java.io.*;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.util.ArrayList;
 import java.util.HashMap;
 
 public class ChatServer {
 
-    private static HashMap<String, PrintWriter> clients = new HashMap<>();
+    // ACTIVE CLIENTS
+    public static ArrayList<ClientHandler> clients = new ArrayList<>();
+
+    // USER ROOMS
     private static HashMap<String, String> userRooms = new HashMap<>();
 
     public static void main(String[] args) {
@@ -64,58 +68,19 @@ public class ChatServer {
 
             writer.println("LOGIN_SUCCESS");
 
+            // CREATE CLIENT HANDLER
+            ClientHandler handler =
+                    new ClientHandler(socket, null, username);
+
             synchronized (clients) {
-                clients.put(username, writer);
+                clients.add(handler);
             }
 
             userRooms.put(username, "general");
 
             broadcast("SERVER: " + username + " joined general");
 
-            // =========================
-            // CHAT LOOP
-            // =========================
-            String message;
-
-            while ((message = reader.readLine()) != null) {
-
-                message = message.trim();
-
-                if (message.equalsIgnoreCase("/logout")) {
-                    break;
-                }
-
-                // JOIN ROOM
-                if (message.startsWith("/join ")) {
-
-                    String room = message.split(" ", 2)[1];
-
-                    userRooms.put(username, room);
-
-                    writer.println("You joined room: " + room);
-
-                    continue;
-                }
-
-                // PRIVATE MESSAGE
-                if (message.startsWith("/dm ")) {
-
-                    handlePrivateMessage(username, message);
-                    continue;
-                }
-
-                // ROOM MESSAGE
-                broadcastToRoom(username, message);
-            }
-
-            synchronized (clients) {
-                clients.remove(username);
-                userRooms.remove(username);
-            }
-
-            broadcast("SERVER: " + username + " left");
-
-            socket.close();
+            new Thread(handler).start();
 
         } catch (IOException e) {
 
@@ -124,56 +89,22 @@ public class ChatServer {
     }
 
     // =========================
-    // ROOM BROADCAST
+    // BROADCAST TO ALL CLIENTS
     // =========================
-    private static void broadcastToRoom(String sender, String message) {
-
-        String room = userRooms.get(sender);
+    public static void broadcast(String message) {
 
         synchronized (clients) {
 
-            for (String user : clients.keySet()) {
-
-                if (room.equals(userRooms.get(user))) {
-
-                    clients.get(user).println(sender + ": " + message);
-                }
+            for (ClientHandler client : clients) {
+                client.send(message);
             }
         }
     }
 
     // =========================
-    // PRIVATE MESSAGE
+    // ROOM BROADCAST (OPTIONAL USE LATER)
     // =========================
-    private static void handlePrivateMessage(String sender, String message) {
-
-        String[] parts = message.split(" ", 3);
-
-        if (parts.length < 3) return;
-
-        String target = parts[1];
-        String msg = parts[2];
-
-        synchronized (clients) {
-
-            PrintWriter writer = clients.get(target);
-
-            if (writer != null) {
-                writer.println("(DM from " + sender + "): " + msg);
-            }
-        }
-    }
-
-    // =========================
-    // SYSTEM BROADCAST
-    // =========================
-    private static void broadcast(String message) {
-
-        synchronized (clients) {
-
-            for (PrintWriter writer : clients.values()) {
-                writer.println(message);
-            }
-        }
+    public static HashMap<String, String> getUserRooms() {
+        return userRooms;
     }
 }

@@ -85,7 +85,9 @@ public class UserManager {
 
             String[] fields = user.split(";");
 
-            if (fields.length < 1) continue;
+            if (fields.length < 1) {
+                continue;
+            }
 
             String storedUsername =
                     fields[0].split("=")[1];
@@ -101,13 +103,20 @@ public class UserManager {
     // SAVE USER TO FILE
     private void saveUserToFile(String userData) {
 
+        File file = new File("users.txt");
+
+        System.out.println("\n=== FILE DEBUG ===");
+        System.out.println("Saving to: " + file.getAbsolutePath());
+
         try (BufferedWriter writer =
                      new BufferedWriter(
-                             new FileWriter("users.txt", true)
+                             new FileWriter(file, true)
                      )) {
 
             writer.write(userData);
             writer.newLine();
+
+            System.out.println("User saved successfully!");
 
         } catch (IOException e) {
 

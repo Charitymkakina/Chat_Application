@@ -52,10 +52,11 @@ public class Main {
 
                         System.out.println("Login successful!");
 
-                        // Start Chat Client after login
-                        ChatClient.main(new String[]{});
+                        // START CHAT CLIENT WITH USERNAME
+                        ChatClient.start(loginUser);
 
                     } else {
+
                         System.out.println("Login failed!");
                     }
 

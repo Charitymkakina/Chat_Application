@@ -4,7 +4,8 @@ import java.util.Scanner;
 
 public class ChatClient {
 
-    public static void main(String[] args) {
+    // NEW ENTRY POINT USED BY Main.java
+    public static void start(String username) {
 
         Scanner scanner = new Scanner(System.in);
 
@@ -26,20 +27,17 @@ public class ChatClient {
                             true
                     );
 
-            // STEP 1: LOGIN
-            System.out.println("LOGIN ");
-
-            System.out.print("Username: ");
-            String username = scanner.nextLine();
-
-            System.out.print("Password: ");
+            // =========================
+            // LOGIN TO SERVER
+            // =========================
+            System.out.print("Enter password: ");
             String password = scanner.nextLine();
 
             writer.println(username + "," + password);
 
             String response = reader.readLine();
 
-            if (!response.equals("LOGIN_SUCCESS")) {
+            if (!"LOGIN_SUCCESS".equals(response)) {
 
                 System.out.println("Login failed!");
                 socket.close();
@@ -48,7 +46,9 @@ public class ChatClient {
 
             System.out.println("Login successful! You can chat now.");
 
-            // STEP 2: CHAT LOOP
+            // =========================
+            // CHAT LOOP
+            // =========================
             while (true) {
 
                 System.out.print("Message: ");
@@ -67,7 +67,5 @@ public class ChatClient {
 
             System.out.println("Error: " + e.getMessage());
         }
-
-        scanner.close();
     }
 }
