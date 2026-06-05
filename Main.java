@@ -49,8 +49,7 @@ public class Main {
                             userManager.loginUser(loginUser, loginPass);
 
                     if (success) {
-
-                        System.out.println("Login successful!");
+                        System.out.println("Login successful! You can chat now!");
 
                         // START CHAT CLIENT WITH USERNAME
                         ChatClient.start(loginUser);

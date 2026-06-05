@@ -76,7 +76,7 @@ public class ChatServer {
 
             userRooms.put(username, "general");
 
-            broadcast("SERVER: " + username + " joined general");
+            broadcast("SERVER: " + username + " joined the chat");
 
             new Thread(handler).start();
 

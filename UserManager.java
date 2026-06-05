@@ -64,7 +64,7 @@ public class UserManager {
             if (storedUsername.equals(username)
                     && storedPassword.equals(hashedInput)) {
 
-                System.out.println("Login successful!");
+                
                 return true;
             }
         }
