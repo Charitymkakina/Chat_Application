@@ -36,20 +36,46 @@ public class ClientHandler implements Runnable {
 
             System.out.println(username + " joined the chat.");
 
-            ChatServer.broadcast("SERVER: " + username + " joined the chat");
+            ChatServer.broadcast(
+                    "[SERVER] " + username + " joined the chat."
+            );
 
             String message;
 
             while ((message = reader.readLine()) != null) {
 
+                // LOGOUT
                 if (message.equalsIgnoreCase("/logout")) {
 
-                    ChatServer.broadcast("SERVER: " + username + " left the chat");
-                    System.out.println(username + " disconnected.");
+                    ChatServer.broadcast(
+                            "[SERVER] " + username + " left the chat."
+                    );
+
+                    System.out.println(
+                            username + " disconnected."
+                    );
+
                     break;
                 }
 
-                String formattedMessage = username + ": " + message;
+                // HELP COMMAND
+                if (message.equalsIgnoreCase("/help")) {
+
+                    send(
+                            "\nAvailable Commands:\n"
+                            + "--------------------------------\n"
+                            + "/help    - Show commands\n"
+                            + "/users   - Show online users\n"
+                            + "/dm      - Send private message\n"
+                            + "/logout  - Leave chat\n"
+                            + "--------------------------------"
+                    );
+
+                    continue;
+                }
+
+                String formattedMessage =
+                        username + ": " + message;
 
                 System.out.println(formattedMessage);
 
@@ -64,7 +90,6 @@ public class ClientHandler implements Runnable {
         }
     }
 
-    // ✅ THIS FIXES YOUR RED SQUIGGLY ERROR
     public void send(String message) {
         writer.println(message);
     }
