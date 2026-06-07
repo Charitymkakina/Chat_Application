@@ -4,31 +4,24 @@ import java.util.Scanner;
 
 public class ChatClient {
 
-    // NEW ENTRY POINT USED BY Main.java
     public static void start(String username) {
 
         Scanner scanner = new Scanner(System.in);
 
         try {
 
-            Socket socket =
-                    new Socket("localhost", 5000);
+            Socket socket = new Socket("localhost", 5000);
 
             BufferedReader reader =
                     new BufferedReader(
-                            new InputStreamReader(
-                                    socket.getInputStream()
-                            )
+                            new InputStreamReader(socket.getInputStream())
                     );
 
             PrintWriter writer =
-                    new PrintWriter(
-                            socket.getOutputStream(),
-                            true
-                    );
+                    new PrintWriter(socket.getOutputStream(), true);
 
             // =========================
-            // LOGIN TO SERVER
+            // LOGIN
             // =========================
             System.out.print("Enter password: ");
             String password = scanner.nextLine();
@@ -47,7 +40,29 @@ public class ChatClient {
             System.out.println("Login successful! You can chat now.");
 
             // =========================
-            // CHAT LOOP
+            // LISTENER THREAD (IMPORTANT FIX)
+            // =========================
+            new Thread(() -> {
+
+                try {
+
+                    String msg;
+
+                    while ((msg = reader.readLine()) != null) {
+
+                        System.out.println("\n" + msg);
+                        System.out.print("Message: ");
+                    }
+
+                } catch (IOException e) {
+
+                    System.out.println("Disconnected from server.");
+                }
+
+            }).start();
+
+            // =========================
+            // CHAT LOOP (SENDING ONLY)
             // =========================
             while (true) {
 
