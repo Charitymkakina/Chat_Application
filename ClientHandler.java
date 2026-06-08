@@ -16,11 +16,19 @@ public class ClientHandler implements Runnable {
         this.username = username;
 
         try {
+
             this.writer =
-                    new PrintWriter(socket.getOutputStream(), true);
+                    new PrintWriter(
+                            socket.getOutputStream(),
+                            true
+                    );
 
         } catch (IOException e) {
-            System.out.println("Error creating writer: " + e.getMessage());
+
+            System.out.println(
+                    "Error creating writer: "
+                            + e.getMessage()
+            );
         }
     }
 
@@ -31,13 +39,19 @@ public class ClientHandler implements Runnable {
 
             BufferedReader reader =
                     new BufferedReader(
-                            new InputStreamReader(socket.getInputStream())
+                            new InputStreamReader(
+                                    socket.getInputStream()
+                            )
                     );
 
-            System.out.println(username + " joined the chat.");
+            System.out.println(
+                    username + " joined the chat."
+            );
 
             ChatServer.broadcast(
-                    "[SERVER] " + username + " joined the chat."
+                    "[SERVER] "
+                            + username
+                            + " joined the chat."
             );
 
             String message;
@@ -47,8 +61,12 @@ public class ClientHandler implements Runnable {
                 // LOGOUT
                 if (message.equalsIgnoreCase("/logout")) {
 
+                    ChatServer.removeUser(username);
+
                     ChatServer.broadcast(
-                            "[SERVER] " + username + " left the chat."
+                            "[SERVER] "
+                                    + username
+                                    + " left the chat."
                     );
 
                     System.out.println(
@@ -63,34 +81,54 @@ public class ClientHandler implements Runnable {
 
                     send(
                             "\nAvailable Commands:\n"
-                            + "--------------------------------\n"
-                            + "/help    - Show commands\n"
-                            + "/users   - Show online users\n"
-                            + "/dm      - Send private message\n"
-                            + "/logout  - Leave chat\n"
-                            + "--------------------------------"
+                                    + "--------------------------------\n"
+                                    + "/help    - Show commands\n"
+                                    + "/users   - Show online users\n"
+                                    + "/dm      - Send private message\n"
+                                    + "/logout  - Leave chat\n"
+                                    + "--------------------------------"
                     );
 
                     continue;
                 }
 
+                // USERS COMMAND
+                if (message.equalsIgnoreCase("/users")) {
+
+                    send(
+                            ChatServer.getOnlineUsers()
+                    );
+
+                    continue;
+                }
+
+                // NORMAL CHAT MESSAGE
                 String formattedMessage =
-                        username + ": " + message;
+                        username
+                                + ": "
+                                + message;
 
-                System.out.println(formattedMessage);
+                System.out.println(
+                        formattedMessage
+                );
 
-                ChatServer.broadcast(formattedMessage);
+                ChatServer.broadcast(
+                        formattedMessage
+                );
             }
 
             socket.close();
 
         } catch (IOException e) {
 
-            System.out.println(username + " disconnected.");
+            System.out.println(
+                    username + " disconnected."
+            );
         }
     }
 
     public void send(String message) {
+
         writer.println(message);
     }
 }

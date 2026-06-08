@@ -1,104 +1,96 @@
-import java.io.*;
-import java.net.ServerSocket;
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.io.PrintWriter;
 import java.net.Socket;
-import java.util.ArrayList;
-import java.util.HashMap;
 
-public class ChatServer {
+public class ClientHandler implements Runnable {
 
-    // ACTIVE CLIENT HANDLERS
-    public static ArrayList<ClientHandler> clients = new ArrayList<>();
+    private Socket socket;
+    private PrintWriter writer;
+    private String username;
 
-    // USER ROOMS (optional feature you already started)
-    private static HashMap<String, String> userRooms = new HashMap<>();
+    public ClientHandler(Socket socket, String username) {
 
-    public static void main(String[] args) {
-
-        UserManager userManager = new UserManager();
+        this.socket = socket;
+        this.username = username;
 
         try {
-
-            ServerSocket serverSocket = new ServerSocket(5000);
-            System.out.println("Server started...");
-
-            while (true) {
-
-                Socket socket = serverSocket.accept();
-
-                new Thread(() -> handleClient(socket, userManager)).start();
-            }
+            this.writer =
+                    new PrintWriter(socket.getOutputStream(), true);
 
         } catch (IOException e) {
-
-            System.out.println("Server error: " + e.getMessage());
+            System.out.println("Error creating writer: " + e.getMessage());
         }
     }
 
-    private static void handleClient(Socket socket, UserManager userManager) {
+    @Override
+    public void run() {
 
         try {
 
             BufferedReader reader =
-                    new BufferedReader(new InputStreamReader(socket.getInputStream()));
+                    new BufferedReader(
+                            new InputStreamReader(socket.getInputStream())
+                    );
 
-            PrintWriter writer =
-                    new PrintWriter(socket.getOutputStream(), true);
+            System.out.println(username + " joined the chat.");
 
-            // LOGIN
-            String loginData = reader.readLine();
+            ChatServer.broadcast(
+                    "[SERVER] " + username + " joined the chat."
+            );
 
-            if (loginData == null || !loginData.contains(",")) {
-                writer.println("LOGIN_FAILED");
-                socket.close();
-                return;
+            String message;
+
+            while ((message = reader.readLine()) != null) {
+
+                // LOGOUT
+                if (message.equalsIgnoreCase("/logout")) {
+
+                    ChatServer.broadcast(
+                            "[SERVER] " + username + " left the chat."
+                    );
+
+                    System.out.println(
+                            username + " disconnected."
+                    );
+
+                    break;
+                }
+
+                // HELP COMMAND
+                if (message.equalsIgnoreCase("/help")) {
+
+                    send(
+                            "\nAvailable Commands:\n"
+                            + "--------------------------------\n"
+                            + "/help    - Show commands\n"
+                            + "/users   - Show online users\n"
+                            + "/dm      - Send private message\n"
+                            + "/logout  - Leave chat\n"
+                            + "--------------------------------"
+                    );
+
+                    continue;
+                }
+
+                String formattedMessage =
+                        username + ": " + message;
+
+                System.out.println(formattedMessage);
+
+                ChatServer.broadcast(formattedMessage);
             }
 
-            String[] credentials = loginData.split(",", 2);
-
-            String username = credentials[0].trim();
-            String password = credentials[1].trim();
-
-            if (!userManager.loginUser(username, password)) {
-                writer.println("LOGIN_FAILED");
-                socket.close();
-                return;
-            }
-
-            writer.println("LOGIN_SUCCESS");
-
-            // CREATE CLIENT HANDLER
-            ClientHandler handler =
-                    new ClientHandler(socket, username);
-
-            synchronized (clients) {
-                clients.add(handler);
-            }
-
-            userRooms.put(username, "general");
-
-            broadcast("SERVER: " + username + " joined the chat");
-
-            new Thread(handler).start();
+            socket.close();
 
         } catch (IOException e) {
 
-            System.out.println("Client error: " + e.getMessage());
+            System.out.println(username + " disconnected.");
         }
     }
 
-    // BROADCAST TO ALL CLIENTS
-    public static void broadcast(String message) {
-
-        synchronized (clients) {
-
-            for (ClientHandler client : clients) {
-                client.send(message);
-            }
-        }
-    }
-
-    // ROOM MAP ACCESS (future use)
-    public static HashMap<String, String> getUserRooms() {
-        return userRooms;
+    public void send(String message) {
+        writer.println(message);
     }
 }
