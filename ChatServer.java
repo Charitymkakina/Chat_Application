@@ -1,96 +1,169 @@
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStreamReader;
-import java.io.PrintWriter;
+import java.io.*;
+import java.net.ServerSocket;
 import java.net.Socket;
+import java.util.ArrayList;
+import java.util.HashMap;
 
-public class ClientHandler implements Runnable {
+public class ChatServer {
 
-    private Socket socket;
-    private PrintWriter writer;
-    private String username;
+    // ACTIVE CLIENTS
+    public static ArrayList<ClientHandler> clients =
+            new ArrayList<>();
 
-    public ClientHandler(Socket socket, String username) {
+    // ONLINE USERS
+    private static HashMap<String, ClientHandler> onlineUsers =
+            new HashMap<>();
 
-        this.socket = socket;
-        this.username = username;
+    public static void main(String[] args) {
+
+        UserManager userManager = new UserManager();
 
         try {
-            this.writer =
-                    new PrintWriter(socket.getOutputStream(), true);
+
+            ServerSocket serverSocket =
+                    new ServerSocket(5000);
+
+            System.out.println("Server started...");
+
+            while (true) {
+
+                Socket socket =
+                        serverSocket.accept();
+
+                new Thread(
+                        () -> handleClient(socket, userManager)
+                ).start();
+            }
 
         } catch (IOException e) {
-            System.out.println("Error creating writer: " + e.getMessage());
+
+            System.out.println(
+                    "Server error: " + e.getMessage()
+            );
         }
     }
 
-    @Override
-    public void run() {
+    private static void handleClient(
+            Socket socket,
+            UserManager userManager
+    ) {
 
         try {
 
             BufferedReader reader =
                     new BufferedReader(
-                            new InputStreamReader(socket.getInputStream())
+                            new InputStreamReader(
+                                    socket.getInputStream()
+                            )
                     );
 
-            System.out.println(username + " joined the chat.");
-
-            ChatServer.broadcast(
-                    "[SERVER] " + username + " joined the chat."
-            );
-
-            String message;
-
-            while ((message = reader.readLine()) != null) {
-
-                // LOGOUT
-                if (message.equalsIgnoreCase("/logout")) {
-
-                    ChatServer.broadcast(
-                            "[SERVER] " + username + " left the chat."
+            PrintWriter writer =
+                    new PrintWriter(
+                            socket.getOutputStream(),
+                            true
                     );
 
-                    System.out.println(
-                            username + " disconnected."
-                    );
+            String loginData =
+                    reader.readLine();
 
-                    break;
-                }
+            if (loginData == null
+                    || !loginData.contains(",")) {
 
-                // HELP COMMAND
-                if (message.equalsIgnoreCase("/help")) {
-
-                    send(
-                            "\nAvailable Commands:\n"
-                            + "--------------------------------\n"
-                            + "/help    - Show commands\n"
-                            + "/users   - Show online users\n"
-                            + "/dm      - Send private message\n"
-                            + "/logout  - Leave chat\n"
-                            + "--------------------------------"
-                    );
-
-                    continue;
-                }
-
-                String formattedMessage =
-                        username + ": " + message;
-
-                System.out.println(formattedMessage);
-
-                ChatServer.broadcast(formattedMessage);
+                writer.println("LOGIN_FAILED");
+                socket.close();
+                return;
             }
 
-            socket.close();
+            String[] credentials =
+                    loginData.split(",", 2);
+
+            String username =
+                    credentials[0].trim();
+
+            String password =
+                    credentials[1].trim();
+
+            if (!userManager.loginUser(
+                    username,
+                    password
+            )) {
+
+                writer.println("LOGIN_FAILED");
+                socket.close();
+                return;
+            }
+
+            writer.println("LOGIN_SUCCESS");
+
+            ClientHandler handler =
+                    new ClientHandler(
+                            socket,
+                            username
+                    );
+
+            synchronized (clients) {
+
+                clients.add(handler);
+
+                onlineUsers.put(
+                        username,
+                        handler
+                );
+            }
+
+            new Thread(handler).start();
 
         } catch (IOException e) {
 
-            System.out.println(username + " disconnected.");
+            System.out.println(
+                    "Client error: "
+                            + e.getMessage()
+            );
         }
     }
 
-    public void send(String message) {
-        writer.println(message);
+    public static void broadcast(
+            String message
+    ) {
+
+        synchronized (clients) {
+
+            for (ClientHandler client :
+                    clients) {
+
+                client.send(message);
+            }
+        }
+    }
+
+    public static String getOnlineUsers() {
+
+        StringBuilder users =
+                new StringBuilder(
+                        "Online Users:\n"
+                );
+
+        synchronized (clients) {
+
+            for (String username :
+                    onlineUsers.keySet()) {
+
+                users.append("- ")
+                        .append(username)
+                        .append("\n");
+            }
+        }
+
+        return users.toString();
+    }
+
+    public static void removeUser(
+            String username
+    ) {
+
+        synchronized (clients) {
+
+            onlineUsers.remove(username);
+        }
     }
 }

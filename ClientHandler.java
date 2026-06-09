@@ -10,7 +10,10 @@ public class ClientHandler implements Runnable {
     private PrintWriter writer;
     private String username;
 
-    public ClientHandler(Socket socket, String username) {
+    public ClientHandler(
+            Socket socket,
+            String username
+    ) {
 
         this.socket = socket;
         this.username = username;
@@ -61,7 +64,9 @@ public class ClientHandler implements Runnable {
                 // LOGOUT
                 if (message.equalsIgnoreCase("/logout")) {
 
-                    ChatServer.removeUser(username);
+                    ChatServer.removeUser(
+                            username
+                    );
 
                     ChatServer.broadcast(
                             "[SERVER] "
@@ -69,30 +74,26 @@ public class ClientHandler implements Runnable {
                                     + " left the chat."
                     );
 
-                    System.out.println(
-                            username + " disconnected."
-                    );
-
                     break;
                 }
 
-                // HELP COMMAND
+                // HELP
                 if (message.equalsIgnoreCase("/help")) {
 
                     send(
                             "\nAvailable Commands:\n"
-                                    + "--------------------------------\n"
-                                    + "/help    - Show commands\n"
-                                    + "/users   - Show online users\n"
-                                    + "/dm      - Send private message\n"
-                                    + "/logout  - Leave chat\n"
-                                    + "--------------------------------"
+                            + "--------------------------------\n"
+                            + "/help\n"
+                            + "/users\n"
+                            + "/dm\n"
+                            + "/logout\n"
+                            + "--------------------------------"
                     );
 
                     continue;
                 }
 
-                // USERS COMMAND
+                // USERS
                 if (message.equalsIgnoreCase("/users")) {
 
                     send(
@@ -102,7 +103,6 @@ public class ClientHandler implements Runnable {
                     continue;
                 }
 
-                // NORMAL CHAT MESSAGE
                 String formattedMessage =
                         username
                                 + ": "
@@ -127,7 +127,9 @@ public class ClientHandler implements Runnable {
         }
     }
 
-    public void send(String message) {
+    public void send(
+            String message
+    ) {
 
         writer.println(message);
     }
