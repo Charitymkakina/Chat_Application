@@ -166,4 +166,15 @@ public class ChatServer {
             onlineUsers.remove(username);
         }
     }
+
+    // NEW METHOD FOR /dm
+    public static ClientHandler getUser(
+            String username
+    ) {
+
+        synchronized (clients) {
+
+            return onlineUsers.get(username);
+        }
+    }
 }

@@ -64,9 +64,7 @@ public class ClientHandler implements Runnable {
                 // LOGOUT
                 if (message.equalsIgnoreCase("/logout")) {
 
-                    ChatServer.removeUser(
-                            username
-                    );
+                    ChatServer.removeUser(username);
 
                     ChatServer.broadcast(
                             "[SERVER] "
@@ -82,12 +80,12 @@ public class ClientHandler implements Runnable {
 
                     send(
                             "\nAvailable Commands:\n"
-                            + "--------------------------------\n"
-                            + "/help\n"
-                            + "/users\n"
-                            + "/dm\n"
-                            + "/logout\n"
-                            + "--------------------------------"
+                                    + "--------------------------------\n"
+                                    + "/help\n"
+                                    + "/users\n"
+                                    + "/dm username message\n"
+                                    + "/logout\n"
+                                    + "--------------------------------"
                     );
 
                     continue;
@@ -103,6 +101,58 @@ public class ClientHandler implements Runnable {
                     continue;
                 }
 
+                // PRIVATE MESSAGE
+                if (message.startsWith("/dm ")) {
+
+                    String[] parts =
+                            message.split(" ", 3);
+
+                    if (parts.length < 3) {
+
+                        send(
+                                "Usage: /dm username message"
+                        );
+
+                        continue;
+                    }
+
+                    String targetUser =
+                            parts[1];
+
+                    String privateMessage =
+                            parts[2];
+
+                    ClientHandler target =
+                            ChatServer.getUser(
+                                    targetUser
+                            );
+
+                    if (target == null) {
+
+                        send(
+                                "User not online."
+                        );
+
+                        continue;
+                    }
+
+                    target.send(
+                            "(DM from "
+                                    + username
+                                    + "): "
+                                    + privateMessage
+                    );
+
+                    send(
+                            "(DM sent to "
+                                    + targetUser
+                                    + ")"
+                    );
+
+                    continue;
+                }
+
+                // NORMAL CHAT MESSAGE
                 String formattedMessage =
                         username
                                 + ": "
