@@ -6,124 +6,208 @@ import java.util.HashMap;
 
 public class ChatServer {
 
-    public static ArrayList<ClientHandler> clients =
-            new ArrayList<>();
 
-    private static HashMap<String, ClientHandler> onlineUsers =
-            new HashMap<>();
+public static ArrayList<ClientHandler> clients =
+        new ArrayList<>();
 
-    public static void main(String[] args) {
+private static HashMap<String, ClientHandler> onlineUsers =
+        new HashMap<>();
 
-        UserManager userManager = new UserManager();
+// NEW: TRACK USER ROOMS
+private static HashMap<String, String> userRooms =
+        new HashMap<>();
 
-        try {
+public static void main(String[] args) {
 
-            ServerSocket serverSocket =
-                    new ServerSocket(5000);
+    UserManager userManager = new UserManager();
 
-            System.out.println("Server started...");
+    try {
 
-            while (true) {
+        ServerSocket serverSocket =
+                new ServerSocket(5000);
 
-                Socket socket =
-                        serverSocket.accept();
+        System.out.println("Server started...");
 
-                new Thread(
-                        () -> handleClient(socket, userManager)
-                ).start();
-            }
+        while (true) {
 
-        } catch (IOException e) {
+            Socket socket =
+                    serverSocket.accept();
 
-            System.out.println("Server error: " + e.getMessage());
+            new Thread(
+                    () -> handleClient(socket, userManager)
+            ).start();
         }
+
+    } catch (IOException e) {
+
+        System.out.println(
+                "Server error: " + e.getMessage()
+        );
     }
+}
 
-    private static void handleClient(Socket socket, UserManager userManager) {
+private static void handleClient(
+        Socket socket,
+        UserManager userManager
+) {
 
-        try {
+    try {
 
-            BufferedReader reader =
-                    new BufferedReader(new InputStreamReader(socket.getInputStream()));
+        BufferedReader reader =
+                new BufferedReader(
+                        new InputStreamReader(
+                                socket.getInputStream()
+                        )
+                );
 
-            PrintWriter writer =
-                    new PrintWriter(socket.getOutputStream(), true);
+        PrintWriter writer =
+                new PrintWriter(
+                        socket.getOutputStream(),
+                        true
+                );
 
-            String loginData = reader.readLine();
+        String loginData =
+                reader.readLine();
 
-            if (loginData == null || !loginData.contains(",")) {
-                writer.println("LOGIN_FAILED");
-                socket.close();
-                return;
-            }
+        if (loginData == null
+                || !loginData.contains(",")) {
 
-            String[] credentials = loginData.split(",", 2);
-
-            String username = credentials[0].trim();
-            String password = credentials[1].trim();
-
-            if (!userManager.loginUser(username, password)) {
-                writer.println("LOGIN_FAILED");
-                socket.close();
-                return;
-            }
-
-            writer.println("LOGIN_SUCCESS");
-
-            ClientHandler handler =
-                    new ClientHandler(socket, username);
-
-            synchronized (clients) {
-
-                clients.add(handler);
-                onlineUsers.put(username, handler);
-            }
-
-            new Thread(handler).start();
-
-        } catch (IOException e) {
-
-            System.out.println("Client error: " + e.getMessage());
+            writer.println("LOGIN_FAILED");
+            socket.close();
+            return;
         }
-    }
 
-    public static void broadcast(String message) {
+        String[] credentials =
+                loginData.split(",", 2);
+
+        String username =
+                credentials[0].trim();
+
+        String password =
+                credentials[1].trim();
+
+        if (!userManager.loginUser(
+                username,
+                password
+        )) {
+
+            writer.println("LOGIN_FAILED");
+            socket.close();
+            return;
+        }
+
+        writer.println("LOGIN_SUCCESS");
+
+        ClientHandler handler =
+                new ClientHandler(
+                        socket,
+                        username
+                );
 
         synchronized (clients) {
 
-            for (ClientHandler client : clients) {
-                client.send(message);
-            }
+            clients.add(handler);
+
+            onlineUsers.put(
+                    username,
+                    handler
+            );
+
+            // DEFAULT ROOM
+            userRooms.put(
+                    username,
+                    "general"
+            );
+        }
+
+        new Thread(handler).start();
+
+    } catch (IOException e) {
+
+        System.out.println(
+                "Client error: "
+                        + e.getMessage()
+        );
+    }
+}
+
+public static void broadcast(
+        String message
+) {
+
+    synchronized (clients) {
+
+        for (ClientHandler client :
+                clients) {
+
+            client.send(message);
+        }
+    }
+}
+
+public static ClientHandler getUser(
+        String username
+) {
+
+    synchronized (clients) {
+
+        return onlineUsers.get(username);
+    }
+}
+
+public static String getOnlineUsers() {
+
+    StringBuilder users =
+            new StringBuilder(
+                    "Online Users:\n"
+            );
+
+    synchronized (clients) {
+
+        for (String username :
+                onlineUsers.keySet()) {
+
+            users.append("- ")
+                    .append(username)
+                    .append("\n");
         }
     }
 
-    // 🔥 REQUIRED FOR /dm
-    public static ClientHandler getUser(String username) {
+    return users.toString();
+}
 
-        synchronized (clients) {
-            return onlineUsers.get(username);
-        }
+public static void removeUser(
+        String username
+) {
+
+    synchronized (clients) {
+
+        onlineUsers.remove(username);
+        userRooms.remove(username);
     }
+}
 
-    public static String getOnlineUsers() {
+// NEW: SET USER ROOM
+public static void setUserRoom(
+        String username,
+        String room
+) {
 
-        StringBuilder users =
-                new StringBuilder("Online Users:\n");
+    userRooms.put(
+            username,
+            room
+    );
+}
 
-        synchronized (clients) {
+// NEW: GET USER ROOM
+public static String getUserRoom(
+        String username
+) {
 
-            for (String username : onlineUsers.keySet()) {
-                users.append("- ").append(username).append("\n");
-            }
-        }
+    return userRooms.get(
+            username
+    );
+}
 
-        return users.toString();
-    }
 
-    public static void removeUser(String username) {
-
-        synchronized (clients) {
-            onlineUsers.remove(username);
-        }
-    }
 }
