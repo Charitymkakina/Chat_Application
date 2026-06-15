@@ -10,28 +10,17 @@ public class ClientHandler implements Runnable {
     private PrintWriter writer;
     private String username;
 
-    public ClientHandler(
-            Socket socket,
-            String username
-    ) {
+    public ClientHandler(Socket socket, String username) {
 
         this.socket = socket;
         this.username = username;
 
         try {
-
             this.writer =
-                    new PrintWriter(
-                            socket.getOutputStream(),
-                            true
-                    );
+                    new PrintWriter(socket.getOutputStream(), true);
 
         } catch (IOException e) {
-
-            System.out.println(
-                    "Error creating writer: "
-                            + e.getMessage()
-            );
+            System.out.println("Writer error: " + e.getMessage());
         }
     }
 
@@ -41,21 +30,9 @@ public class ClientHandler implements Runnable {
         try {
 
             BufferedReader reader =
-                    new BufferedReader(
-                            new InputStreamReader(
-                                    socket.getInputStream()
-                            )
-                    );
+                    new BufferedReader(new InputStreamReader(socket.getInputStream()));
 
-            System.out.println(
-                    username + " joined the chat."
-            );
-
-            ChatServer.broadcast(
-                    "[SERVER] "
-                            + username
-                            + " joined the chat."
-            );
+            ChatServer.broadcast("[SERVER] " + username + " joined the chat.");
 
             String message;
 
@@ -65,13 +42,7 @@ public class ClientHandler implements Runnable {
                 if (message.equalsIgnoreCase("/logout")) {
 
                     ChatServer.removeUser(username);
-
-                    ChatServer.broadcast(
-                            "[SERVER] "
-                                    + username
-                                    + " left the chat."
-                    );
-
+                    ChatServer.broadcast("[SERVER] " + username + " left the chat.");
                     socket.close();
                     break;
                 }
@@ -79,57 +50,41 @@ public class ClientHandler implements Runnable {
                 // HELP
                 if (message.equalsIgnoreCase("/help")) {
 
-                    send(
-                            "\nAvailable Commands:\n"
-                                    + "--------------------------------\n"
-                                    + "/help\n"
-                                    + "/users\n"
-                                    + "/join roomName\n"
-                                    + "/dm username message\n"
-                                    + "/logout\n"
-                                    + "--------------------------------"
-                    );
-
+                    send("""
+Available Commands:
+-------------------------
+/help
+/users
+/join roomName
+/dm username message
+/logout
+-------------------------
+""");
                     continue;
                 }
 
                 // USERS
                 if (message.equalsIgnoreCase("/users")) {
 
-                    send(
-                            ChatServer.getOnlineUsers()
-                    );
-
+                    send(ChatServer.getOnlineUsers());
                     continue;
                 }
 
                 // JOIN ROOM
                 if (message.startsWith("/join ")) {
 
-                    String[] parts =
-                            message.split(" ", 2);
+                    String[] parts = message.split(" ", 2);
 
                     if (parts.length < 2) {
-
-                        send(
-                                "Usage: /join roomName"
-                        );
-
+                        send("Usage: /join roomName");
                         continue;
                     }
 
-                    String room =
-                            parts[1].trim();
+                    String room = parts[1].trim();
 
-                    ChatServer.setUserRoom(
-                            username,
-                            room
-                    );
+                    ChatServer.setUserRoom(username, room);
 
-                    send(
-                            "You joined room: "
-                                    + room
-                    );
+                    send("You joined room: " + room);
 
                     continue;
                 }
@@ -137,82 +92,47 @@ public class ClientHandler implements Runnable {
                 // PRIVATE MESSAGE
                 if (message.startsWith("/dm ")) {
 
-                    String[] parts =
-                            message.split(" ", 3);
+                    String[] parts = message.split(" ", 3);
 
                     if (parts.length < 3) {
-
-                        send(
-                                "Usage: /dm username message"
-                        );
-
+                        send("Usage: /dm username message");
                         continue;
                     }
 
-                    String targetUser =
-                            parts[1];
-
-                    String privateMessage =
-                            parts[2];
+                    String targetUser = parts[1];
+                    String privateMessage = parts[2];
 
                     ClientHandler target =
-                            ChatServer.getUser(
-                                    targetUser
-                            );
+                            ChatServer.getUser(targetUser);
 
                     if (target == null) {
-
-                        send(
-                                "User not online: "
-                                        + targetUser
-                        );
-
+                        send("User not online: " + targetUser);
                         continue;
                     }
 
-                    target.send(
-                            "(DM from "
-                                    + username
-                                    + "): "
-                                    + privateMessage
-                    );
-
-                    send(
-                            "(DM sent to "
-                                    + targetUser
-                                    + ")"
-                    );
+                    target.send("(DM from " + username + "): " + privateMessage);
+                    send("(DM sent to " + targetUser + ")");
 
                     continue;
                 }
 
-                // NORMAL CHAT MESSAGE
+                // ROOM MESSAGE (FINAL STEP 28C)
+                String room = ChatServer.getUserRoom(username);
+
                 String formattedMessage =
-                        username
-                                + ": "
-                                + message;
+                        "[" + room + "] " + username + ": " + message;
 
-                System.out.println(
-                        formattedMessage
-                );
+                System.out.println(formattedMessage);
 
-                ChatServer.broadcast(
-                        formattedMessage
-                );
+                ChatServer.broadcastToRoom(username, formattedMessage);
             }
 
         } catch (IOException e) {
-
-            System.out.println(
-                    username + " disconnected."
-            );
+            System.out.println(username + " disconnected.");
         }
     }
 
-    public void send(
-            String message
-    ) {
-
+    public void send(String message) {
         writer.println(message);
     }
 }

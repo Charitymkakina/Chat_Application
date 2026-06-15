@@ -6,208 +6,167 @@ import java.util.HashMap;
 
 public class ChatServer {
 
+    public static ArrayList<ClientHandler> clients =
+            new ArrayList<>();
 
-public static ArrayList<ClientHandler> clients =
-        new ArrayList<>();
+    private static HashMap<String, ClientHandler> onlineUsers =
+            new HashMap<>();
 
-private static HashMap<String, ClientHandler> onlineUsers =
-        new HashMap<>();
+    private static HashMap<String, String> userRooms =
+            new HashMap<>();
 
-// NEW: TRACK USER ROOMS
-private static HashMap<String, String> userRooms =
-        new HashMap<>();
+    public static void main(String[] args) {
 
-public static void main(String[] args) {
+        UserManager userManager = new UserManager();
 
-    UserManager userManager = new UserManager();
+        try {
 
-    try {
+            ServerSocket serverSocket =
+                    new ServerSocket(5000);
 
-        ServerSocket serverSocket =
-                new ServerSocket(5000);
+            System.out.println("Server started...");
 
-        System.out.println("Server started...");
+            while (true) {
 
-        while (true) {
+                Socket socket =
+                        serverSocket.accept();
 
-            Socket socket =
-                    serverSocket.accept();
+                new Thread(
+                        () -> handleClient(socket, userManager)
+                ).start();
+            }
 
-            new Thread(
-                    () -> handleClient(socket, userManager)
-            ).start();
+        } catch (IOException e) {
+
+            System.out.println("Server error: " + e.getMessage());
         }
-
-    } catch (IOException e) {
-
-        System.out.println(
-                "Server error: " + e.getMessage()
-        );
     }
-}
 
-private static void handleClient(
-        Socket socket,
-        UserManager userManager
-) {
+    private static void handleClient(Socket socket, UserManager userManager) {
 
-    try {
+        try {
 
-        BufferedReader reader =
-                new BufferedReader(
-                        new InputStreamReader(
-                                socket.getInputStream()
-                        )
-                );
+            BufferedReader reader =
+                    new BufferedReader(new InputStreamReader(socket.getInputStream()));
 
-        PrintWriter writer =
-                new PrintWriter(
-                        socket.getOutputStream(),
-                        true
-                );
+            PrintWriter writer =
+                    new PrintWriter(socket.getOutputStream(), true);
 
-        String loginData =
-                reader.readLine();
+            String loginData = reader.readLine();
 
-        if (loginData == null
-                || !loginData.contains(",")) {
+            if (loginData == null || !loginData.contains(",")) {
+                writer.println("LOGIN_FAILED");
+                socket.close();
+                return;
+            }
 
-            writer.println("LOGIN_FAILED");
-            socket.close();
-            return;
+            String[] credentials = loginData.split(",", 2);
+
+            String username = credentials[0].trim();
+            String password = credentials[1].trim();
+
+            if (!userManager.loginUser(username, password)) {
+                writer.println("LOGIN_FAILED");
+                socket.close();
+                return;
+            }
+
+            writer.println("LOGIN_SUCCESS");
+
+            ClientHandler handler =
+                    new ClientHandler(socket, username);
+
+            synchronized (clients) {
+
+                clients.add(handler);
+
+                onlineUsers.put(username, handler);
+
+                // DEFAULT ROOM
+                userRooms.put(username, "general");
+            }
+
+            new Thread(handler).start();
+
+        } catch (IOException e) {
+
+            System.out.println("Client error: " + e.getMessage());
         }
+    }
 
-        String[] credentials =
-                loginData.split(",", 2);
-
-        String username =
-                credentials[0].trim();
-
-        String password =
-                credentials[1].trim();
-
-        if (!userManager.loginUser(
-                username,
-                password
-        )) {
-
-            writer.println("LOGIN_FAILED");
-            socket.close();
-            return;
-        }
-
-        writer.println("LOGIN_SUCCESS");
-
-        ClientHandler handler =
-                new ClientHandler(
-                        socket,
-                        username
-                );
+    // GLOBAL BROADCAST (optional system messages)
+    public static void broadcast(String message) {
 
         synchronized (clients) {
 
-            clients.add(handler);
-
-            onlineUsers.put(
-                    username,
-                    handler
-            );
-
-            // DEFAULT ROOM
-            userRooms.put(
-                    username,
-                    "general"
-            );
-        }
-
-        new Thread(handler).start();
-
-    } catch (IOException e) {
-
-        System.out.println(
-                "Client error: "
-                        + e.getMessage()
-        );
-    }
-}
-
-public static void broadcast(
-        String message
-) {
-
-    synchronized (clients) {
-
-        for (ClientHandler client :
-                clients) {
-
-            client.send(message);
-        }
-    }
-}
-
-public static ClientHandler getUser(
-        String username
-) {
-
-    synchronized (clients) {
-
-        return onlineUsers.get(username);
-    }
-}
-
-public static String getOnlineUsers() {
-
-    StringBuilder users =
-            new StringBuilder(
-                    "Online Users:\n"
-            );
-
-    synchronized (clients) {
-
-        for (String username :
-                onlineUsers.keySet()) {
-
-            users.append("- ")
-                    .append(username)
-                    .append("\n");
+            for (ClientHandler client : clients) {
+                client.send(message);
+            }
         }
     }
 
-    return users.toString();
-}
+    // ROOM-BASED BROADCAST (CORE STEP 28C)
+    public static void broadcastToRoom(
+            String sender,
+            String message
+    ) {
 
-public static void removeUser(
-        String username
-) {
+        String senderRoom = userRooms.get(sender);
 
-    synchronized (clients) {
+        synchronized (clients) {
 
-        onlineUsers.remove(username);
-        userRooms.remove(username);
+            for (String username : onlineUsers.keySet()) {
+
+                String userRoom = userRooms.get(username);
+
+                if (senderRoom != null &&
+                        senderRoom.equals(userRoom)) {
+
+                    onlineUsers.get(username).send(message);
+                }
+            }
+        }
     }
-}
 
-// NEW: SET USER ROOM
-public static void setUserRoom(
-        String username,
-        String room
-) {
+    public static ClientHandler getUser(String username) {
 
-    userRooms.put(
-            username,
-            room
-    );
-}
+        synchronized (clients) {
+            return onlineUsers.get(username);
+        }
+    }
 
-// NEW: GET USER ROOM
-public static String getUserRoom(
-        String username
-) {
+    public static String getOnlineUsers() {
 
-    return userRooms.get(
-            username
-    );
-}
+        StringBuilder users =
+                new StringBuilder("Online Users:\n");
 
+        synchronized (clients) {
 
+            for (String username : onlineUsers.keySet()) {
+                users.append("- ")
+                        .append(username)
+                        .append(" (")
+                        .append(userRooms.get(username))
+                        .append(")\n");
+            }
+        }
+
+        return users.toString();
+    }
+
+    public static void removeUser(String username) {
+
+        synchronized (clients) {
+            onlineUsers.remove(username);
+            userRooms.remove(username);
+        }
+    }
+
+    public static void setUserRoom(String username, String room) {
+        userRooms.put(username, room);
+    }
+
+    public static String getUserRoom(String username) {
+        return userRooms.get(username);
+    }
 }
