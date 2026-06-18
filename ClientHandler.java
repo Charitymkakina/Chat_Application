@@ -6,6 +6,7 @@ import java.net.Socket;
 
 public class ClientHandler implements Runnable {
 
+```
 private Socket socket;
 private PrintWriter writer;
 private String username;
@@ -78,6 +79,7 @@ public void run() {
                         -------------------------
                         /help
                         /users
+                        /rooms
                         /room
                         /join roomName
                         /dm username message
@@ -94,6 +96,16 @@ public void run() {
 
                 send(
                         ChatServer.getOnlineUsers()
+                );
+
+                continue;
+            }
+
+            // ROOMS
+            if (message.equalsIgnoreCase("/rooms")) {
+
+                send(
+                        ChatServer.getRooms()
                 );
 
                 continue;
@@ -232,6 +244,6 @@ public void send(String message) {
 
     writer.println(message);
 }
-
+```
 
 }

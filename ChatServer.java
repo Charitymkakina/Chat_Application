@@ -6,6 +6,7 @@ import java.util.HashMap;
 
 public class ChatServer {
 
+```
 public static ArrayList<ClientHandler> clients =
         new ArrayList<>();
 
@@ -39,7 +40,8 @@ public static void main(String[] args) {
     } catch (IOException e) {
 
         System.out.println(
-                "Server error: " + e.getMessage()
+                "Server error: "
+                        + e.getMessage()
         );
     }
 }
@@ -111,7 +113,6 @@ private static void handleClient(
                     handler
             );
 
-            // DEFAULT ROOM
             userRooms.put(
                     username,
                     "general"
@@ -247,5 +248,39 @@ public static String getUserRoom(
     );
 }
 
+// STEP 29A - LIST ROOMS
+public static String getRooms() {
+
+    StringBuilder rooms =
+            new StringBuilder(
+                    "Available Rooms:\n"
+            );
+
+    ArrayList<String> roomList =
+            new ArrayList<>();
+
+    synchronized (clients) {
+
+        for (String room :
+                userRooms.values()) {
+
+            if (!roomList.contains(room)) {
+
+                roomList.add(room);
+            }
+        }
+    }
+
+    for (String room :
+            roomList) {
+
+        rooms.append("- ")
+                .append(room)
+                .append("\n");
+    }
+
+    return rooms.toString();
+}
+```
 
 }
