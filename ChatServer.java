@@ -6,7 +6,7 @@ import java.util.HashMap;
 
 public class ChatServer {
 
-```
+
 public static ArrayList<ClientHandler> clients =
         new ArrayList<>();
 
@@ -209,6 +209,46 @@ public static String getOnlineUsers() {
     return users.toString();
 }
 
+// STEP 29B - ROOM STATISTICS
+public static String getRooms() {
+
+    StringBuilder rooms =
+            new StringBuilder(
+                    "Available Rooms:\n"
+            );
+
+    HashMap<String, Integer> roomCounts =
+            new HashMap<>();
+
+    synchronized (clients) {
+
+        for (String room :
+                userRooms.values()) {
+
+            roomCounts.put(
+                    room,
+                    roomCounts.getOrDefault(
+                            room,
+                            0
+                    ) + 1
+            );
+        }
+    }
+
+    for (String room :
+            roomCounts.keySet()) {
+
+        rooms.append("- ")
+                .append(room)
+                .append(" (")
+                .append(roomCounts.get(room))
+                .append(" users)")
+                .append("\n");
+    }
+
+    return rooms.toString();
+}
+
 public static void removeUser(
         String username
 ) {
@@ -248,39 +288,5 @@ public static String getUserRoom(
     );
 }
 
-// STEP 29A - LIST ROOMS
-public static String getRooms() {
-
-    StringBuilder rooms =
-            new StringBuilder(
-                    "Available Rooms:\n"
-            );
-
-    ArrayList<String> roomList =
-            new ArrayList<>();
-
-    synchronized (clients) {
-
-        for (String room :
-                userRooms.values()) {
-
-            if (!roomList.contains(room)) {
-
-                roomList.add(room);
-            }
-        }
-    }
-
-    for (String room :
-            roomList) {
-
-        rooms.append("- ")
-                .append(room)
-                .append("\n");
-    }
-
-    return rooms.toString();
-}
-```
 
 }
