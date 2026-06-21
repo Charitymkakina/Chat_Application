@@ -6,7 +6,6 @@ import java.net.Socket;
 
 public class ClientHandler implements Runnable {
 
-```
 private Socket socket;
 private PrintWriter writer;
 private String username;
@@ -142,17 +141,38 @@ public void run() {
                     continue;
                 }
 
-                String room =
+                String oldRoom =
+                        ChatServer.getUserRoom(
+                                username
+                        );
+
+                String newRoom =
                         parts[1].trim();
 
                 ChatServer.setUserRoom(
                         username,
-                        room
+                        newRoom
+                );
+
+                ChatServer.notifyRoom(
+                        oldRoom,
+                        "[ROOM] "
+                                + username
+                                + " left "
+                                + oldRoom
+                );
+
+                ChatServer.notifyRoom(
+                        newRoom,
+                        "[ROOM] "
+                                + username
+                                + " joined "
+                                + newRoom
                 );
 
                 send(
                         "You joined room: "
-                                + room
+                                + newRoom
                 );
 
                 continue;
@@ -244,6 +264,6 @@ public void send(String message) {
 
     writer.println(message);
 }
-```
+
 
 }

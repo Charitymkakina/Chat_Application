@@ -6,7 +6,6 @@ import java.util.HashMap;
 
 public class ChatServer {
 
-
 public static ArrayList<ClientHandler> clients =
         new ArrayList<>();
 
@@ -172,6 +171,29 @@ public static void broadcastToRoom(
     }
 }
 
+// STEP 30A - ROOM NOTIFICATIONS
+public static void notifyRoom(
+        String room,
+        String message
+) {
+
+    synchronized (clients) {
+
+        for (String username :
+                onlineUsers.keySet()) {
+
+            String userRoom =
+                    userRooms.get(username);
+
+            if (room.equals(userRoom)) {
+
+                onlineUsers.get(username)
+                        .send(message);
+            }
+        }
+    }
+}
+
 public static ClientHandler getUser(
         String username
 ) {
@@ -209,7 +231,6 @@ public static String getOnlineUsers() {
     return users.toString();
 }
 
-// STEP 29B - ROOM STATISTICS
 public static String getRooms() {
 
     StringBuilder rooms =
